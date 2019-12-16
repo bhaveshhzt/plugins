@@ -35,6 +35,7 @@ class AndroidIntent {
     this.arguments,
     this.package,
     this.componentName,
+    this.apkUrl,
     Platform platform,
   })  : assert(action != null),
         _channel = const MethodChannel(_kChannelName),
@@ -53,6 +54,7 @@ class AndroidIntent {
     this.arguments,
     this.package,
     this.componentName,
+    this.apkUrl,
   })  : _channel = channel,
         _platform = platform;
 
@@ -96,6 +98,11 @@ class AndroidIntent {
   final String componentName;
   final MethodChannel _channel;
   final Platform _platform;
+
+  /// Set the exact `apkUrl` that should open with intent. If this parameter is 
+  /// set `flags` `category` `data` `arguments` `package` `componentName` are not required.
+  /// set [package] should also be non-null.
+  final String apkUrl;
 
   bool _isPowerOfTwo(int x) {
     /* First x in the below expression is for the case when x is 0 */
@@ -143,5 +150,18 @@ class AndroidIntent {
       }
     }
     await _channel.invokeMethod<void>('launch', args);
+  }
+
+  /// Launch the intent to open file.
+  ///
+  /// This works only on Android platforms. Please guard the call so that your
+  /// iOS app does not crash. Checked mode will throw an assert exception.
+  Future<void> openFile() async {
+    assert(_platform.isAndroid);
+    final Map<String, dynamic> args = <String, dynamic>{'action': action};
+    if (apkUrl != null) {
+      args['apkUrl'] = apkUrl;
+    }
+    await _channel.invokeMethod('openFile', args);
   }
 }

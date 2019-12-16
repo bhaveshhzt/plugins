@@ -58,44 +58,52 @@ public final class IntentSender {
       @Nullable Uri data,
       @Nullable Bundle arguments,
       @Nullable String packageName,
-      @Nullable ComponentName componentName) {
+      @Nullable ComponentName componentName,
+      @Nullable String apkUrl) {
     if (applicationContext == null) {
       Log.wtf(TAG, "Trying to send an intent before the applicationContext was initialized.");
       return;
     }
 
-    Intent intent = new Intent(action);
+    if(apkUrl == null) {
+      Intent intent = new Intent(action);
 
-    if (flags != null) {
-      intent.addFlags(flags);
-    }
-    if (!TextUtils.isEmpty(category)) {
-      intent.addCategory(category);
-    }
-    if (data != null) {
-      intent.setData(data);
-    }
-    if (arguments != null) {
-      intent.putExtras(arguments);
-    }
-    if (!TextUtils.isEmpty(packageName)) {
-      intent.setPackage(packageName);
-      if (componentName != null) {
-        intent.setComponent(componentName);
+      if (flags != null) {
+        intent.addFlags(flags);
       }
-      if (intent.resolveActivity(applicationContext.getPackageManager()) == null) {
-        Log.i(TAG, "Cannot resolve explicit intent - ignoring package");
-        intent.setPackage(null);
+      if (!TextUtils.isEmpty(category)) {
+        intent.addCategory(category);
       }
-    }
+      if (data != null) {
+        intent.setData(data);
+      }
+      if (arguments != null) {
+        intent.putExtras(arguments);
+      }
+      if (!TextUtils.isEmpty(packageName)) {
+        intent.setPackage(packageName);
+        if (componentName != null) {
+          intent.setComponent(componentName);
+        }
+        if (intent.resolveActivity(applicationContext.getPackageManager()) == null) {
+          Log.i(TAG, "Cannot resolve explicit intent - ignoring package");
+          intent.setPackage(null);
+        }
+      }
 
-    Log.v(TAG, "Sending intent " + intent);
-    if (activity != null) {
-      activity.startActivity(intent);
+      Log.v(TAG, "Sending intent " + intent);
+      if (activity != null) {
+        activity.startActivity(intent);
+      } else {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        applicationContext.startActivity(intent);
+      }
     } else {
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      applicationContext.startActivity(intent);
-    }
+      Intent intent = IntentUtils.getOpenFileIntent(this.applicationContext, apkUrl);
+
+      this.applicationContext.startActivity(intent);
+      IntentUtils.validateIntent(this.applicationContext, intent);
+    } 
   }
 
   /** Caches the given {@code activity} to use for {@link #send}. */

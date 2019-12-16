@@ -83,8 +83,9 @@ public final class MethodCallHandlerImpl implements MethodCallHandler {
                 && !TextUtils.isEmpty((String) call.argument("componentName")))
             ? new ComponentName(packageName, (String) call.argument("componentName"))
             : null;
+    String apkUrl = call.argument("apkUrl");
 
-    sender.send(action, flags, category, data, arguments, packageName, componentName);
+    sender.send(action, flags, category, data, arguments, packageName, componentName, apkUrl);
 
     result.success(null);
   }
